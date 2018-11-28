@@ -1,0 +1,142 @@
+---
+title: "Happiness 2017"
+author: "JasonPai"
+date: "November 27, 2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{R}
+library(ggplot2)
+library(ggthemes)
+library(plyr)
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(tidyr)
+
+```
+
+File Call
+
+```{R}
+
+Happiness <- read.csv("Happiness2017.csv")
+head(Happiness)
+```
+
+```{R}
+colnames (Happiness) <- c("Country", "Happiness.Rank", "Happiness.Score",
+                          "Whisker.High", "Whisker.Low", "Economy", "Family",
+                          "Life.Expectancy", "Freedom", "Generosity",
+                          "Trust", "Dystopia.Residual")
+
+Happiness <- Happiness[, -c(4,5)]
+```
+
+Regionalize by continent
+
+```{R}
+
+Happiness$Continent <- NA
+
+Happiness$Continent[which(Happiness$Country %in% c("Israel", "United Arab Emirates", 
+                                   "Qatar", "Saudi Arabia", "Kuwait", "Bahrain",  "Uzbekistan", 
+                                   "Turkmenistan", "Kazakhstan", "Turkey", "Jordan", "Pakistan",
+                                   "Azerbaijan", "Lebanon", "Tajikistan",  "Kyrgyzstan", 
+                                   "Palestinian Territories", "Iran", "Bangladesh", "Iraq", 
+                                   "Sri Lanka", "Armenia", "India", "Georgia",
+                                   "Afghanistan", "Yemen", "Syria"))] <- "West Asia"
+Happiness$Continent[which(Happiness$Country %in% c("Norway", "Denmark", "Iceland", "Switzerland", "Finland",
+                                   "Netherlands", "Sweden", "Austria", "Ireland", "Germany",
+                                   "Belgium", "Luxembourg", "United Kingdom", "Czech Republic",
+                                   "Malta", "France", "Spain", "Slovakia", "Poland", "Italy",
+                                   "Russia", "Lithuania", "Latvia", "Moldova", "Romania",
+                                   "Slovenia", "North Cyprus", "Cyprus", "Estonia", "Belarus",
+                                   "Serbia", "Hungary", "Croatia", "Kosovo", "Montenegro",
+                                   "Greece", "Portugal", "Bosnia and Herzegovina", "Macedonia",
+                                   "Bulgaria", "Albania", "Ukraine"))] <- "Europe"
+Happiness$Continent[which(Happiness$Country %in% c("Canada", "United States", "Mexico", "Panama",
+                                   "Trinidad and Tobago", "El Salvador", "Belize", "Guatemala", 
+                                   "Jamaica", "Nicaragua", "Costa Rica", "Honduras", "Haiti", 
+                                   "Dominican Republic"))] <- "North America"
+Happiness$Continent[which(Happiness$Country %in% c("Chile", "Brazil", "Argentina", "Uruguay",
+                                   "Colombia", "Ecuador", "Bolivia", "Peru", "Paraguay",
+                                   "Venezuela"))] <- "South America"
+Happiness$Continent[which(Happiness$Country %in% c("China", "South Korea", "New Zealand", "Japan",
+                                   "Philippines", "Australia", "Malaysia", "Hong Kong S.A.R., China",
+                                   "Singapore", "Thailand", "Taiwan Province of China","Indonesia",
+                                   "Myanmar", "Cambodia","Nepal", "Mongolia","Vietnam", 
+                                   "Bhutan"))] <- "Asia Pacific"
+Happiness$Continent[which(is.na(Happiness$Continent))] <- "Africa"
+
+Happiness <- Happiness %>% select(Country, Continent, everything())
+Happiness$Continent <- as.factor(Happiness$Continent)
+head(Happiness)
+```
+# Tables and Visualization
+
+```{R}
+
+stable <- desc_statby(Happiness, measure.var = "Happiness.Score", grps = "Continent")
+stable <- stable[, c("Continent","mean","median")]
+names(stable) <- c("Continent", "Mean of happiness score","Median of happiness score")
+Happytable <- ggtexttable(stable,rows = NULL, theme = ttheme("classic"))
+Happytable 
+
+```
+
+Scatter plot
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Economy)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent, fill = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Economy")
+```
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Dystopia.Residual)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent, fill = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Distopia Residual")
+```
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Life.Expectancy)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent, fill = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Life Expectancy")
+```
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Freedom)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent, fill = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Freedom")
+```
+
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Trust)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Trust")
+```
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Generosity)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent, fill = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Generousity")
+```
+
+```{R}
+ggplot(Happiness, aes(x = Happiness.Score, y = Family)) + 
+  geom_point(aes(color=Continent), size = 3, alpha = 0.8) +  
+  geom_smooth(aes(color = Continent, fill = Continent), method = "lm", fullrange = TRUE) +
+  facet_wrap(~Continent) + theme_bw() + labs(title = "Family")
+```
